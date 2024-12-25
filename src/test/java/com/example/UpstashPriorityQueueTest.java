@@ -5,66 +5,72 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class InMemoryPriorityQueueTest {
-	private PriorityQueueService pqs;
+public class UpstashPriorityQueueTest {
+	private PriorityQueueService upqs;
 	private String queueUrl = "https://sqs.ap-1.amazonaws.com/007/MyQueue";
 	
 	@Before
 	public void setup() {
-		pqs = new InMemoryPriorityQueueService();
+		upqs = new UpstashPriorityQueueService();
 	}
 	
 	
 	@Test
 	public void testSendMessage(){
-		pqs.push(queueUrl, "Good message!", 10);
-		Message msg = pqs.pull(queueUrl);
+		upqs.push(queueUrl, "Good message!", 10);
+		Message msg = upqs.pull(queueUrl);
 
 		assertNotNull(msg);
 		assertEquals("Good message!", msg.getBody());
+
+		upqs.delete(queueUrl, msg.getReceiptId());
 	}
 	
 	@Test
 	public void testPullMessage(){
 		String msgBody = "{ \"name\":\"John\", \"age\":30, \"car\":null }";
 		
-		pqs.push(queueUrl, msgBody, 10);
-		Message msg = pqs.pull(queueUrl);
+		upqs.push(queueUrl, msgBody, 10);
+		Message msg = upqs.pull(queueUrl);
 
 		assertEquals(msgBody, msg.getBody());
 		assertTrue(msg.getReceiptId() != null && msg.getReceiptId().length() > 0);
+
+		upqs.delete(queueUrl, msg.getReceiptId());
 	}
 
 	@Test
 	public void testPullEmptyQueue(){
-		Message msg = pqs.pull(queueUrl);
+		Message msg = upqs.pull(queueUrl);
 		assertNull(msg);
 	}
 	
 	@Test
 	public void testDoublePull(){
-		pqs.push(queueUrl, "Message A.", 10);
-		pqs.pull(queueUrl);
-		Message msg = pqs.pull(queueUrl);
-		assertNull(msg);
+		upqs.push(queueUrl, "Message A.", 10);
+		Message msg1 = upqs.pull(queueUrl);
+		Message msg2 = upqs.pull(queueUrl);
+		assertNull(msg2);
+
+		upqs.delete(queueUrl, msg1.getReceiptId());
 	}
 	
 	@Test
 	public void testDeleteMessage(){
 		String msgBody = "{ \"name\":\"John\", \"age\":30, \"car\":null }";
 		
-		pqs.push(queueUrl, msgBody, 10);
-		Message msg = pqs.pull(queueUrl);
+		upqs.push(queueUrl, msgBody, 10);
+		Message msg = upqs.pull(queueUrl);
 
-		pqs.delete(queueUrl, msg.getReceiptId());
-		msg = pqs.pull(queueUrl);
+		upqs.delete(queueUrl, msg.getReceiptId());
+		msg = upqs.pull(queueUrl);
 		
 		assertNull(msg);
 	}
 
 	@Test
 	public void testDeleteVisibleMessage(){
-		InMemoryPriorityQueueService priorityQueueService = new InMemoryPriorityQueueService() {
+		UpstashPriorityQueueService upstashPriorityQueueService = new UpstashPriorityQueueService() {
 			long now() {
 				return System.currentTimeMillis() + 1000 * 30 + 1;
 			}
@@ -72,13 +78,15 @@ public class InMemoryPriorityQueueTest {
 
 		String msgBody = "{ \"name\":\"John\", \"age\":30, \"car\":null }";
 
-		priorityQueueService.push(queueUrl, msgBody, 10);
-		Message msg = priorityQueueService.pull(queueUrl);
+		upstashPriorityQueueService.push(queueUrl, msgBody, 10);
+		Message msg = upstashPriorityQueueService.pull(queueUrl);
 
-		priorityQueueService.delete(queueUrl, msg.getReceiptId());
-		msg = priorityQueueService.pull(queueUrl);
+		upstashPriorityQueueService.delete(queueUrl, msg.getReceiptId());
+		msg = upstashPriorityQueueService.pull(queueUrl);
 
 		assertNotNull(msg);
+
+		upqs.delete(queueUrl, msg.getReceiptId());
 	}
 
 	@Test
@@ -93,15 +101,19 @@ public class InMemoryPriorityQueueTest {
 						"        \"car3\":\"Fiat\"\n" +
 						"    }\n" +
 						" }"};
-		pqs.push(queueUrl, msgStrs[0], 1);
-		pqs.push(queueUrl, msgStrs[1], 2);
-		pqs.push(queueUrl, msgStrs[2], 3);
-		Message msg1 = pqs.pull(queueUrl);
-		Message msg2 = pqs.pull(queueUrl);
-		Message msg3 = pqs.pull(queueUrl);
+		upqs.push(queueUrl, msgStrs[0], 1);
+		upqs.push(queueUrl, msgStrs[1], 2);
+		upqs.push(queueUrl, msgStrs[2], 3);
+		Message msg1 = upqs.pull(queueUrl);
+		Message msg2 = upqs.pull(queueUrl);
+		Message msg3 = upqs.pull(queueUrl);
 
 		org.junit.Assert.assertTrue(msgStrs[0].equals(msg1.getBody())
 				&& msgStrs[1].equals(msg2.getBody()) && msgStrs[2].equals(msg3.getBody()));
+
+		upqs.delete(queueUrl, msg1.getReceiptId());
+		upqs.delete(queueUrl, msg2.getReceiptId());
+		upqs.delete(queueUrl, msg3.getReceiptId());
 	}
 
 	@Test
@@ -116,17 +128,21 @@ public class InMemoryPriorityQueueTest {
 						"        \"car3\":\"Fiat\"\n" +
 						"    }\n" +
 						" }"};
-		pqs.push(queueUrl, msgStrs[0], 10);
+		upqs.push(queueUrl, msgStrs[0], 10);
 		Thread.sleep(100);
-		pqs.push(queueUrl, msgStrs[1], 10);
+		upqs.push(queueUrl, msgStrs[1], 10);
 		Thread.sleep(100);
-		pqs.push(queueUrl, msgStrs[2], 10);
-		Message msg1 = pqs.pull(queueUrl);
-		Message msg2 = pqs.pull(queueUrl);
-		Message msg3 = pqs.pull(queueUrl);
+		upqs.push(queueUrl, msgStrs[2], 10);
+		Message msg1 = upqs.pull(queueUrl);
+		Message msg2 = upqs.pull(queueUrl);
+		Message msg3 = upqs.pull(queueUrl);
 
 		org.junit.Assert.assertTrue(msgStrs[0].equals(msg1.getBody())
 				&& msgStrs[1].equals(msg2.getBody()) && msgStrs[2].equals(msg3.getBody()));
+
+		upqs.delete(queueUrl, msg1.getReceiptId());
+		upqs.delete(queueUrl, msg2.getReceiptId());
+		upqs.delete(queueUrl, msg3.getReceiptId());
 	}
 
 	@Test
@@ -141,16 +157,20 @@ public class InMemoryPriorityQueueTest {
 						"        \"car3\":\"Fiat\"\n" +
 						"    }\n" +
 						" }"};
-		pqs.push(queueUrl, msgStrs[0], 1);
+		upqs.push(queueUrl, msgStrs[0], 1);
 		Thread.sleep(100);
-		pqs.push(queueUrl, msgStrs[1], 1);
-		pqs.push(queueUrl, msgStrs[2], 10);
-		Message msg1 = pqs.pull(queueUrl);
-		Message msg2 = pqs.pull(queueUrl);
-		Message msg3 = pqs.pull(queueUrl);
+		upqs.push(queueUrl, msgStrs[1], 1);
+		upqs.push(queueUrl, msgStrs[2], 10);
+		Message msg1 = upqs.pull(queueUrl);
+		Message msg2 = upqs.pull(queueUrl);
+		Message msg3 = upqs.pull(queueUrl);
 
 		org.junit.Assert.assertTrue(msgStrs[0].equals(msg1.getBody())
 				&& msgStrs[1].equals(msg2.getBody()) && msgStrs[2].equals(msg3.getBody()));
+
+		upqs.delete(queueUrl, msg1.getReceiptId());
+		upqs.delete(queueUrl, msg2.getReceiptId());
+		upqs.delete(queueUrl, msg3.getReceiptId());
 	}
 	
 	@Test
@@ -165,5 +185,7 @@ public class InMemoryPriorityQueueTest {
 		priorityQueueService.pull(queueUrl);
 		Message msg = priorityQueueService.pull(queueUrl);
 		assertTrue(msg != null && msg.getBody() == "Message A.");
+
+		upqs.delete(queueUrl, msg.getReceiptId());
 	}
 }

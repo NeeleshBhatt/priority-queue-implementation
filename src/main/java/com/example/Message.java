@@ -1,5 +1,7 @@
 package com.example;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Message {
   /** How many times this message has been delivered. */
   private int attempts;
@@ -11,6 +13,10 @@ public class Message {
   private String receiptId;
 
   private String msgBody;
+
+  Message() {
+
+  }
 
   Message(String msgBody) {
     this.msgBody = msgBody;
@@ -33,6 +39,10 @@ public class Message {
     this.visibleFrom = visibleFrom;
   }
 
+  public long getVisibleFrom() {
+    return visibleFrom;
+  }
+
   /*
   public boolean isVisible() {
   	return visibleFrom < System.currentTimeMillis();
@@ -42,8 +52,13 @@ public class Message {
     return visibleFrom < instant;
   }
 
+  @JsonProperty("msgBody")
   public String getBody() {
     return msgBody;
+  }
+
+  public void setMsgBody(String msgBody) {
+    this.msgBody = msgBody;
   }
 
   protected int getAttempts() {

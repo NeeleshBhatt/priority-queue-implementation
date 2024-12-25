@@ -39,7 +39,7 @@ public class InMemoryPriorityQueueService implements PriorityQueueService {
     }
 
     @Override
-    public PriorityMessage pull(String queueUrl) {
+    public Message pull(String queueUrl) {
         PriorityBlockingQueue<PriorityMessage> queue = queues.get(queueUrl);
         if (queue == null) {
             return null;
@@ -57,7 +57,7 @@ public class InMemoryPriorityQueueService implements PriorityQueueService {
                 msg.setVisibleFrom(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(visibilityTimeout));
                 queue.add(msg);
                 queue.addAll(invisibleMessages); // Reinsert invisible messages
-                return new PriorityMessage(msg.getBody(), msg.getReceiptId(), msg.getPriority());
+                return new Message(msg.getBody(), msg.getReceiptId());
             } else {
                 // If the message is not visible, store it temporarily
                 invisibleMessages.add(msg);

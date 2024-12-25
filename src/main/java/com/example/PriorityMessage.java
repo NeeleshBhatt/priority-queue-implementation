@@ -2,7 +2,11 @@ package com.example;
 
 public class PriorityMessage extends Message implements Comparable<PriorityMessage> {
     private int priority;
-    private final long createdAt;
+    private long createdAt;
+
+    public PriorityMessage() {
+
+    }
 
     public PriorityMessage(String msgBody, int priority) {
         super(msgBody);
@@ -30,8 +34,8 @@ public class PriorityMessage extends Message implements Comparable<PriorityMessa
 
     @Override
     public int compareTo(PriorityMessage other) {
-        // Higher priority should come first
-        int priorityComparison = Integer.compare(other.priority, this.priority);
+        // Lower priority value should come first
+        int priorityComparison = Integer.compare(this.priority, other.priority);
         if (priorityComparison != 0) {
             return priorityComparison;
         }
