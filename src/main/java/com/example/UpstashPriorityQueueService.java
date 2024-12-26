@@ -6,13 +6,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 public class UpstashPriorityQueueService implements PriorityQueueService {
@@ -21,11 +16,9 @@ public class UpstashPriorityQueueService implements PriorityQueueService {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final String redisUrl;
     private final String redisToken;
-    private final ConcurrentMap<String, String> queueKeys;
     private final long visibilityTimeout;
 
     public UpstashPriorityQueueService() {
-        this.queueKeys = new ConcurrentHashMap<>();
         String propFileName = "config.properties";
         Properties confInfo = new Properties();
 
@@ -60,7 +53,7 @@ public class UpstashPriorityQueueService implements PriorityQueueService {
 
             // Fetch all the messages sorted by priority and timestamp
             String response = executeRedisCommand("ZRANGE", queueUrl, "0", "-1");
-            if (response == null || response.isEmpty()) {
+            if (response == null || response.isEmpty() || response.equals("[]")) {
                 return null;
             }
 
@@ -90,7 +83,7 @@ public class UpstashPriorityQueueService implements PriorityQueueService {
 
         try {
             String response = executeRedisCommand("ZRANGE", queueUrl, "0", "-1");
-            if (response != null && !response.isEmpty()) {
+            if (response != null && !response.isEmpty() && !response.equals("[]")) {
                 List<PriorityMessage> allMessages = parseMessages(response);
                 long nowTime = now();
 

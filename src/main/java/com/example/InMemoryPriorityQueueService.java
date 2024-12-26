@@ -49,7 +49,7 @@ public class InMemoryPriorityQueueService implements PriorityQueueService {
         List<PriorityMessage> invisibleMessages = new ArrayList<>(); // Temporary storage for invisible messages
 
         while (!queue.isEmpty()) {
-            PriorityMessage msg = queue.poll(); // Retrieve the head element
+            PriorityMessage msg = queue.poll();
             if (msg.isVisibleAt(nowTime)) {
                 // If the message is visible, update visibility
                 msg.setReceiptId(UUID.randomUUID().toString());

@@ -34,7 +34,7 @@ public class PriorityMessage extends Message implements Comparable<PriorityMessa
 
     @Override
     public int compareTo(PriorityMessage other) {
-        // Lower priority value should come first
+        // Lower value has higher priority and should come first
         int priorityComparison = Integer.compare(this.priority, other.priority);
         if (priorityComparison != 0) {
             return priorityComparison;

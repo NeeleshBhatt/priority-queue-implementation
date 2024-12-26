@@ -34,7 +34,7 @@ public class UpstashPriorityQueueTest {
 		Message msg = upqs.pull(queueUrl);
 
 		assertEquals(msgBody, msg.getBody());
-		assertTrue(msg.getReceiptId() != null && msg.getReceiptId().length() > 0);
+		assertTrue(msg.getReceiptId() != null && !msg.getReceiptId().isEmpty());
 
 		upqs.delete(queueUrl, msg.getReceiptId());
 	}
@@ -181,10 +181,12 @@ public class UpstashPriorityQueueTest {
 			}
 		};
 
-		priorityQueueService.push(queueUrl, "Message A.", 10);
+		String msgBody = "Message A.";
+
+		priorityQueueService.push(queueUrl, msgBody, 10);
 		priorityQueueService.pull(queueUrl);
 		Message msg = priorityQueueService.pull(queueUrl);
-		assertTrue(msg != null && msg.getBody() == "Message A.");
+		assertTrue(msg != null && msgBody.equals(msg.getBody()));
 
 		upqs.delete(queueUrl, msg.getReceiptId());
 	}
